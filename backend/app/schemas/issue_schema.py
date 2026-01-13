@@ -1,55 +1,39 @@
-"""
-Issue Pydantic schemas
-"""
+"""Issue Pydantic schemas."""
+from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field
+from typing import Optional
 from app.models.issue import IssueStatus
+from app.schemas.user_schema import UserResponse
 
 
 class IssueBase(BaseModel):
-    """Base issue schema"""
-    title: str = Field(..., min_length=1, max_length=255)
+    """Base issue schema."""
+    title: str
     description: Optional[str] = None
+    status: IssueStatus = IssueStatus.OPEN
 
 
 class IssueCreate(IssueBase):
-    """Schema for creating a new issue"""
+    """Schema for creating an issue."""
+    repository_id: int
     creator_id: int
 
 
 class IssueUpdate(BaseModel):
-    """Schema for updating an issue"""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    """Schema for updating an issue."""
+    title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[IssueStatus] = None
 
 
-class CreatorInfo(BaseModel):
-    """Embedded creator info in issue response"""
-    id: int
-    username: str
-    avatar_url: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
-
-
 class IssueResponse(IssueBase):
-    """Schema for issue response"""
+    """Schema for issue response."""
     id: int
     repository_id: int
     creator_id: int
-    creator: Optional[CreatorInfo] = None
-    status: IssueStatus
     created_at: datetime
     updated_at: datetime
+    creator: Optional[UserResponse] = None
     
     class Config:
         from_attributes = True
-
-
-class IssueList(BaseModel):
-    """Schema for list of issues"""
-    issues: List[IssueResponse]
-    total: int

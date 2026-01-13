@@ -1,15 +1,15 @@
-"""
-Database connection and session management
-"""
+"""Database connection and session management."""
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
 # Create database engine
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    pool_recycle=300,
+    echo=False
 )
 
 # Create session factory
@@ -20,7 +20,7 @@ Base = declarative_base()
 
 
 def get_db():
-    """Dependency to get database session"""
+    """Dependency to get database session."""
     db = SessionLocal()
     try:
         yield db

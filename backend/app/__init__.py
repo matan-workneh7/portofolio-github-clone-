@@ -1,3 +1,1 @@
-"""
-GitHub Clone API - Backend Application
-"""
+# Backend application package

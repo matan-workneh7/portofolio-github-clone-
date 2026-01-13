@@ -1,49 +1,46 @@
-"""
-User API routes
-"""
-from fastapi import APIRouter, Depends, status
+"""User API routes."""
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from typing import List
 from app.database import get_db
-from app.controllers.user_controller import UserController
-from app.schemas.user_schema import UserCreate, UserUpdate, UserResponse, UserList
+from app.schemas.user_schema import UserCreate, UserUpdate, UserResponse
+from app.controllers import user_controller
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter()
 
 
-@router.get("", response_model=UserList)
+@router.post("/users", response_model=UserResponse, status_code=201)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    """Create a new user."""
+    return user_controller.create_user(db, user)
+
+
+@router.get("/users", response_model=List[UserResponse])
 def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get all users with pagination"""
-    users, total = UserController.get_all(db, skip=skip, limit=limit)
-    return {"users": users, "total": total}
+    """Get all users."""
+    return user_controller.get_users(db, skip, limit)
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/users/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
-    """Get a user by ID"""
-    return UserController.get_by_id(db, user_id)
+    """Get a user by ID."""
+    return user_controller.get_user(db, user_id)
 
 
-@router.get("/username/{username}", response_model=UserResponse)
+@router.get("/users/username/{username}", response_model=UserResponse)
 def get_user_by_username(username: str, db: Session = Depends(get_db)):
-    """Get a user by username"""
-    return UserController.get_by_username(db, username)
+    """Get a user by username."""
+    return user_controller.get_user_by_username(db, username)
 
 
-@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Create a new user"""
-    return UserController.create(db, user_data)
+@router.put("/users/{user_id}", response_model=UserResponse)
+def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+    """Update a user."""
+    return user_controller.update_user(db, user_id, user)
 
 
-@router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
-    """Update an existing user"""
-    return UserController.update(db, user_id, user_data)
-
-
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/users/{user_id}", status_code=204)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
-    """Delete a user"""
-    UserController.delete(db, user_id)
+    """Delete a user."""
+    user_controller.delete_user(db, user_id)
     return None

@@ -1,64 +1,55 @@
-import api from './api'
+import api from './api';
 
 export interface User {
-    id: number
-    username: string
-    email: string
-    bio: string | null
-    avatar_url: string | null
-    created_at: string
+  id: number;
+  username: string;
+  email: string;
+  bio?: string;
+  avatar_url?: string;
+  created_at: string;
 }
 
 export interface UserCreate {
-    username: string
-    email: string
-    bio?: string
-    avatar_url?: string
+  username: string;
+  email: string;
+  bio?: string;
+  avatar_url?: string;
 }
 
 export interface UserUpdate {
-    username?: string
-    email?: string
-    bio?: string
-    avatar_url?: string
-}
-
-export interface UserList {
-    users: User[]
-    total: number
+  username?: string;
+  email?: string;
+  bio?: string;
+  avatar_url?: string;
 }
 
 export const userService = {
-    async getAll(skip = 0, limit = 100): Promise<UserList> {
-        const response = await api.get<UserList>('/users', {
-            params: { skip, limit },
-        })
-        return response.data
-    },
+  getAll: async (skip = 0, limit = 100): Promise<User[]> => {
+    const response = await api.get('/users', { params: { skip, limit } });
+    return response.data;
+  },
 
-    async getById(id: number): Promise<User> {
-        const response = await api.get<User>(`/users/${id}`)
-        return response.data
-    },
+  getById: async (id: number): Promise<User> => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
 
-    async getByUsername(username: string): Promise<User> {
-        const response = await api.get<User>(`/users/username/${username}`)
-        return response.data
-    },
+  getByUsername: async (username: string): Promise<User> => {
+    const response = await api.get(`/users/username/${username}`);
+    return response.data;
+  },
 
-    async create(data: UserCreate): Promise<User> {
-        const response = await api.post<User>('/users', data)
-        return response.data
-    },
+  create: async (user: UserCreate): Promise<User> => {
+    const response = await api.post('/users', user);
+    return response.data;
+  },
 
-    async update(id: number, data: UserUpdate): Promise<User> {
-        const response = await api.put<User>(`/users/${id}`, data)
-        return response.data
-    },
+  update: async (id: number, user: UserUpdate): Promise<User> => {
+    const response = await api.put(`/users/${id}`, user);
+    return response.data;
+  },
 
-    async delete(id: number): Promise<void> {
-        await api.delete(`/users/${id}`)
-    },
-}
-
-export default userService
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/users/${id}`);
+  },
+};

@@ -1,30 +1,25 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Header } from '@/components/layout/Header'
-import { Home } from '@/pages/Home'
-import { RepositoryPage } from '@/pages/Repository'
-import { Profile } from '@/pages/Profile'
-import { Search } from '@/pages/Search'
-import { IssuePage } from '@/pages/Issue'
-import { NewRepository } from '@/pages/NewRepository'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Repository from './pages/Repository';
+import Profile from './pages/Profile';
+import Search from './pages/Search';
+import Issue from './pages/Issue';
+import Layout from './components/layout/Layout';
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <Header />
-        <main className="container mx-auto">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/repos/:id" element={<RepositoryPage />} />
-            <Route path="/repos/:id/issues/:issueId" element={<IssuePage />} />
-            <Route path="/users/:username" element={<Profile />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/new" element={<NewRepository />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
-  )
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/repositories/:id" element={<Repository />} />
+          <Route path="/users/:username" element={<Profile />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/repositories/:repoId/issues/:issueId" element={<Issue />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
 }
 
-export default App
+export default App;

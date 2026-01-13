@@ -1,64 +1,29 @@
-"""
-Search controller - Business logic for search operations
-"""
-from typing import List, Literal
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
-
+"""Search controller - business logic for search."""
+from sqlalchemy.orm import Session
+from sqlalchemy import or_, func
 from app.models.user import User
 from app.models.repository import Repository
 
 
-class SearchController:
-    """Controller for search-related operations"""
-    
-    @staticmethod
-    def search(
-        db: Session,
-        query: str,
-        search_type: Literal["all", "users", "repositories"] = "all",
-        skip: int = 0,
-        limit: int = 20
-    ) -> dict:
-        """
-        Search for users and/or repositories
-        Returns a dict with 'users' and 'repositories' lists
-        """
-        results = {
-            "users": [],
-            "users_total": 0,
-            "repositories": [],
-            "repositories_total": 0
-        }
-        
-        if not query:
-            return results
-        
-        search_term = f"%{query}%"
-        
-        # Search users
-        if search_type in ["all", "users"]:
-            user_query = db.query(User).filter(
-                or_(
-                    User.username.ilike(search_term),
-                    User.bio.ilike(search_term)
-                )
-            )
-            results["users_total"] = user_query.count()
-            results["users"] = user_query.offset(skip).limit(limit).all()
-        
-        # Search repositories
-        if search_type in ["all", "repositories"]:
-            repo_query = db.query(Repository).filter(
-                Repository.is_public == True,
-                or_(
-                    Repository.name.ilike(search_term),
-                    Repository.description.ilike(search_term)
-                )
-            )
-            results["repositories_total"] = repo_query.count()
-            results["repositories"] = repo_query.options(
-                joinedload(Repository.owner)
-            ).offset(skip).limit(limit).all()
-        
-        return results
+def search_users(db: Session, query: str, skip: int = 0, limit: int = 20) -> list[User]:
+    """Search users by username or email."""
+    search_term = f"%{query.lower()}%"
+    # Use func.lower for case-insensitive search (MySQL compatible)
+    return db.query(User).filter(
+        or_(
+            func.lower(User.username).like(search_term),
+            func.lower(User.email).like(search_term)
+        )
+    ).offset(skip).limit(limit).all()
+
+
+def search_repositories(db: Session, query: str, skip: int = 0, limit: int = 20) -> list[Repository]:
+    """Search repositories by name or description."""
+    search_term = f"%{query.lower()}%"
+    # Use func.lower for case-insensitive search (MySQL compatible)
+    return db.query(Repository).filter(
+        or_(
+            func.lower(Repository.name).like(search_term),
+            func.lower(Repository.description).like(search_term)
+        )
+    ).offset(skip).limit(limit).all()

@@ -1,26 +1,25 @@
-"""
-Configuration settings using pydantic-settings
-"""
+"""Configuration settings for the application."""
 from pydantic_settings import BaseSettings
-from functools import lru_cache
+from typing import Optional
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables"""
+    """Application settings loaded from environment variables."""
     
-    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/github_clone"
-    APP_NAME: str = "GitHub Clone API"
-    DEBUG: bool = True
+    # Database settings
+    DATABASE_URL: str = "mysql+pymysql://user:password@localhost/github_clone"
+    
+    # API settings
+    API_V1_PREFIX: str = "/api/v1"
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"]
+    
+    # Application settings
+    PROJECT_NAME: str = "GitHub Clone API"
+    VERSION: str = "1.0.0"
     
     class Config:
         env_file = ".env"
-        env_file_encoding = "utf-8"
+        case_sensitive = True
 
 
-@lru_cache()
-def get_settings() -> Settings:
-    """Get cached settings instance"""
-    return Settings()
-
-
-settings = get_settings()
+settings = Settings()

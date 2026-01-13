@@ -1,49 +1,37 @@
-import api from './api'
-
-export interface AuthorInfo {
-    id: number
-    username: string
-    avatar_url: string | null
-}
+import api from './api';
+import { User } from './userService';
 
 export interface Commit {
-    id: number
-    repository_id: number
-    author_id: number
-    author: AuthorInfo | null
-    message: string
-    hash: string
-    created_at: string
+  id: number;
+  repository_id: number;
+  author_id: number;
+  message: string;
+  hash: string;
+  created_at: string;
+  author?: User;
 }
 
 export interface CommitCreate {
-    author_id: number
-    message: string
-    hash?: string
-}
-
-export interface CommitList {
-    commits: Commit[]
-    total: number
+  repository_id: number;
+  author_id: number;
+  message: string;
 }
 
 export const commitService = {
-    async getByRepository(repoId: number, skip = 0, limit = 100): Promise<CommitList> {
-        const response = await api.get<CommitList>(`/repos/${repoId}/commits`, {
-            params: { skip, limit },
-        })
-        return response.data
-    },
+  getById: async (id: number): Promise<Commit> => {
+    const response = await api.get(`/commits/${id}`);
+    return response.data;
+  },
 
-    async getById(repoId: number, commitId: number): Promise<Commit> {
-        const response = await api.get<Commit>(`/repos/${repoId}/commits/${commitId}`)
-        return response.data
-    },
+  getByRepository: async (repoId: number, skip = 0, limit = 100): Promise<Commit[]> => {
+    const response = await api.get(`/repositories/${repoId}/commits`, {
+      params: { skip, limit },
+    });
+    return response.data;
+  },
 
-    async create(repoId: number, data: CommitCreate): Promise<Commit> {
-        const response = await api.post<Commit>(`/repos/${repoId}/commits`, data)
-        return response.data
-    },
-}
-
-export default commitService
+  create: async (commit: CommitCreate): Promise<Commit> => {
+    const response = await api.post('/commits', commit);
+    return response.data;
+  },
+};

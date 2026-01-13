@@ -1,108 +1,73 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { ProfileHeader } from '@/components/profile/ProfileHeader'
-import { RepositoryCard } from '@/components/repository/RepositoryCard'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import userService, { type User } from '@/services/userService'
-import repositoryService, { type Repository } from '@/services/repositoryService'
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import RepositoryCard from '@/components/repository/RepositoryCard';
+import { userService, User } from '@/services/userService';
+import { repositoryService, Repository } from '@/services/repositoryService';
 
-export function Profile() {
-    const { username } = useParams<{ username: string }>()
-    const [user, setUser] = useState<User | null>(null)
-    const [repositories, setRepositories] = useState<Repository[]>([])
-    const [starredRepos, setStarredRepos] = useState<Repository[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+export default function Profile() {
+  const { username } = useParams<{ username: string }>();
+  const [user, setUser] = useState<User | null>(null);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!username) return
-
-            try {
-                setLoading(true)
-                const userData = await userService.getByUsername(username)
-                setUser(userData)
-
-                const [reposData, starredData] = await Promise.all([
-                    repositoryService.getByUser(userData.id),
-                    repositoryService.getStarredByUser(userData.id),
-                ])
-
-                setRepositories(reposData.repositories)
-                setStarredRepos(starredData.repositories)
-            } catch (err) {
-                setError('Failed to load profile')
-                console.error(err)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [username])
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-            </div>
-        )
+  useEffect(() => {
+    if (username) {
+      loadUser();
     }
+  }, [username]);
 
-    if (error || !user) {
-        return (
-            <div className="text-center py-12">
-                <p className="text-red-400">{error || 'User not found'}</p>
-            </div>
-        )
+  const loadUser = async () => {
+    if (!username) return;
+    try {
+      const data = await userService.getByUsername(username);
+      setUser(data);
+    } catch (error) {
+      console.error('Error loading user:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return (
-        <div className="max-w-5xl mx-auto px-4 py-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-8">
-                <ProfileHeader user={user} repoCount={repositories.length} />
-            </div>
+  const loadRepositories = async () => {
+    if (!user) return;
+    try {
+      const data = await repositoryService.getAll(0, 100, user.id);
+      setRepositories(data);
+    } catch (error) {
+      console.error('Error loading repositories:', error);
+    }
+  };
 
-            <Tabs defaultValue="repositories" className="w-full">
-                <TabsList className="bg-zinc-900 border border-zinc-800">
-                    <TabsTrigger value="repositories" className="data-[state=active]:bg-zinc-800">
-                        Repositories ({repositories.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="starred" className="data-[state=active]:bg-zinc-800">
-                        Stars ({starredRepos.length})
-                    </TabsTrigger>
-                </TabsList>
+  useEffect(() => {
+    if (user) {
+      loadRepositories();
+    }
+  }, [user]);
 
-                <TabsContent value="repositories" className="mt-6">
-                    {repositories.length === 0 ? (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center text-zinc-400">
-                            No repositories yet
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {repositories.map((repo) => (
-                                <RepositoryCard key={repo.id} repository={repo} />
-                            ))}
-                        </div>
-                    )}
-                </TabsContent>
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-                <TabsContent value="starred" className="mt-6">
-                    {starredRepos.length === 0 ? (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center text-zinc-400">
-                            No starred repositories yet
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {starredRepos.map((repo) => (
-                                <RepositoryCard key={repo.id} repository={repo} />
-                            ))}
-                        </div>
-                    )}
-                </TabsContent>
-            </Tabs>
+  if (!user) {
+    return <div>User not found</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <ProfileHeader user={user} />
+
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Repositories</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {repositories.map((repo) => (
+            <RepositoryCard key={repo.id} repository={repo} />
+          ))}
         </div>
-    )
+        {repositories.length === 0 && (
+          <p className="text-muted-foreground">No repositories yet</p>
+        )}
+      </div>
+    </div>
+  );
 }
-
-export default Profile

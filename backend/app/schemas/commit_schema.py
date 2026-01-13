@@ -1,46 +1,29 @@
-"""
-Commit Pydantic schemas
-"""
+"""Commit Pydantic schemas."""
+from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field
+from typing import Optional
+from app.schemas.user_schema import UserResponse
 
 
 class CommitBase(BaseModel):
-    """Base commit schema"""
-    message: str = Field(..., min_length=1)
+    """Base commit schema."""
+    message: str
 
 
 class CommitCreate(CommitBase):
-    """Schema for creating a new commit"""
+    """Schema for creating a commit."""
+    repository_id: int
     author_id: int
-    hash: Optional[str] = None  # Auto-generated if not provided
-
-
-class AuthorInfo(BaseModel):
-    """Embedded author info in commit response"""
-    id: int
-    username: str
-    avatar_url: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
 
 
 class CommitResponse(CommitBase):
-    """Schema for commit response"""
+    """Schema for commit response."""
     id: int
     repository_id: int
     author_id: int
-    author: Optional[AuthorInfo] = None
     hash: str
     created_at: datetime
+    author: Optional[UserResponse] = None
     
     class Config:
         from_attributes = True
-
-
-class CommitList(BaseModel):
-    """Schema for list of commits"""
-    commits: List[CommitResponse]
-    total: int
